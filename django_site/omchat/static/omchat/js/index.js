@@ -3,18 +3,21 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
     var app = window.app = {}
 
     /* app.js */
+    app.name = 'omchat';
     if (location.pathname.search('/~ch_jyx') == 0) {
         app.script_prefix = '/~ch_jyx';
+        app.comet_server = 'http://ihome.ust.hk:8443';
     }
     else {
         app.script_prefix = '';
+        app.comet_server = 'http://localhost:8443';
     }
 
     /* channel.js */
 
     var Channel = app.Channel = function(opt) {
-        this.endpoint = opt.endpoint;
         this.cid = opt.cid;
+        this.endpoint = app.comet_server + '/' + app.name + '/' + this.cid;
         _.extend(this, Backbone.Events);
     };
 
@@ -24,13 +27,15 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
                 return;  /* don't do anything if we are stopped */
 
             var self = this;
-            var dfd = $.post(this.endpoint, {
-                cid: this.cid
-            }, null, 'json');
+            var dfd = $.ajax({
+                url: this.endpoint,
+                dataType: 'jsonp'
+            });
             dfd.done(function(resp) {
                 if (resp.errors) {
                     var errors = resp.errors;
-                    if (errors.timeout) {
+                    if (errors.__all__ &&
+                        errors.__all__[0] == 'ChannelTimeout') {
                         /* re-fetch in the next event loop */
                         self._fetch();
                     }
@@ -87,10 +92,8 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
 
         $.post(app.script_prefix + '/omchat/getcid', {}, function(resp) {
             var ch = app.ch = new Channel({
-                endpoint: app.script_prefix + '/omchat/bind',
                 cid: resp.cid
             });
-
             ch.bind('msg', function(msg) {
                 $(tmpls.chat.simple_display({
                     msg: JSON.parse(msg)

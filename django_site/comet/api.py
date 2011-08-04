@@ -1,16 +1,29 @@
 
-from comet.exposer import ChannelManager, app_managers, factory
+from comet.exposer import ChannelManager, app_managers, create_server_factory
 
-def create_channel(app_name):
+def get_appchannel(app_name):
     if app_name not in app_managers:
-        cm = app_managers[app_name] = ChannelManager
+        cm = app_managers[app_name] = ChannelManager()
     else:
         cm = app_managers[app_name]
+    return cm
+
+def create_channel(app_name):
+    cm = get_appchannel(app_name)
     cid = cm.create()
     return cid
 
+def cleanup_channel(app_name):
+    cm = get_appchannel(app_name)
+    cm.clean_up()
+
 def send_message(app_name, cid, message):
-    app_managers[app_name].get(cid).put(message)
+    get_appchannel(app_name).get(cid).put(message)
+
+def broadcast_message(app_name, message):
+    for ch in get_appchannel(app_name).iterchannels():
+        print 'put to %s, %s' % (ch, message)
+        ch.put(message)
 
 def once(func):
     retval = []
@@ -24,8 +37,10 @@ def once(func):
 def start_server(port):
     from threading import Thread
     def call():
+        from twisted.internet import pollreactor
+        pollreactor.install()
         from twisted.internet import reactor
-        reactor.listenTCP(port, factory)
+        reactor.listenTCP(port, create_server_factory())
         reactor.run(installSignalHandlers=0) # we are in thread
     th = Thread(target=call)
     th.start()

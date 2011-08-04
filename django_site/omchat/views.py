@@ -5,10 +5,8 @@ from django.http import HttpResponse
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
-from channels.api import (ChannelManager, NoSuchChannel, FetchTimeout,
-        ChannelOccupied)
-
-chman = ChannelManager()
+from comet.api import (create_channel, send_message, broadcast_message,
+        get_appchannel)
 
 def json_resp(data=None):
     if data is None:
@@ -32,6 +30,7 @@ def index(request):
 
 def only_allow_post(func):
     def call(req, *argl, **kw):
+        return func(req, *argl, **kw)
         if req.method == 'POST': # only allows post
             return func(req, *argl, **kw)
         else:
@@ -40,42 +39,13 @@ def only_allow_post(func):
 
 @only_allow_post
 def getcid(request):
-    chman.clean_up()
     return json_resp({
-        'cid': chman.create_one(),
-        'nchannels': len(chman)
+        'cid': create_channel('omchat'),
+        'nfds': len(get_appchannel('omchat'))
     })
 
 @only_allow_post
-def binder(request):
-    cid = request.POST.get('cid', None)
-    if cid is None:
-        return err_resp(cid=['have\'nt received a channel id'])
-    try:
-        ch = chman.get_channel(int(cid))
-    except (ValueError, NoSuchChannel):
-        return err_resp(cid=['no such channel id -- %s' % cid])
-    try:
-        return json_resp({
-            'msg': ch.fetch_data()
-        })
-    except FetchTimeout:
-        return err_resp(timeout=True)
-    except ChannelOccupied:
-        return err_resp(occupied=True)
-
-@only_allow_post
-def sendto(request):
-    cid = request.POST.get('cid')
-    try:
-        ch = chman.get_channel(int(cid))
-    except (ValueError, NoSuchChannel):
-        return err_resp(cid=['no such channel id -- %s' % cid])
-    ch.publish_data(request.POST.get('msg'))
-    return json_resp()
-
-@only_allow_post
 def broadcast(request):
-    chman.broadcast(request.POST.get('msg'))
+    broadcast_message('omchat', request.POST.get('msg'))
     return json_resp()
 
