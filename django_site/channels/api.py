@@ -44,6 +44,9 @@ class ChannelManager(object):
         self.channels = OrderedDict()
         self.next_cid = 1
 
+    def __len__(self):
+        return len(self.channels)
+
     def clean_up(self, time_diff=30 * 60):
         # clean up those with time_diff > 30 minutes
         # this can be done using cron

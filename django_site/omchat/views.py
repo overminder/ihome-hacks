@@ -40,8 +40,10 @@ def only_allow_post(func):
 
 @only_allow_post
 def getcid(request):
+    chman.clean_up()
     return json_resp({
-        'cid': chman.create_one()
+        'cid': chman.create_one(),
+        'nchannels': len(chman)
     })
 
 @only_allow_post

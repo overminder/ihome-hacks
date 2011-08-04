@@ -8,6 +8,7 @@ at_ihome = 'ch_jyx' in here
 if at_ihome:
     FORCE_SCRIPT_NAME = '/~ch_jyx'
     DEBUG = False
+    os.system('ulimit -n 10000') # increase fd limit
 else:
     FORCE_SCRIPT_NAME = ''
     DEBUG = True
