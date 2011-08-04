@@ -1,0 +1,120 @@
+
+@page-width: 712px;
+@col-margin: 12px;
+@chat-width: @page-width - 2 * @col-margin;
+
+body {
+    font-size: 14px;
+    font-family: "Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif;
+    width: @page-width;
+    margin: auto;
+}
+
+#header {
+    h2 {
+        text-align: center;
+        font-size: 200%;
+        margin: 20px;
+    }
+}
+
+#chat-list {
+    margin: auto;
+    width: @chat-width;
+    height: 350px;
+    border-color: #ccc;
+    border-width: 1px;
+    border-style: solid;
+    overflow: scroll;
+    overflow-x: hidden;
+
+    > ul {
+        > li {
+            padding: 10px 20px;
+        }
+    }
+
+    .last-pub-time {
+        .time {
+            font-style: italic;
+        }
+    }
+}
+
+#mouth {
+    @textarea-width: 430px;
+    @left-margin: 12px;
+    @button-width: 120px;
+    @button-height: 24px;
+    @box-height: 90px;
+    @gap: 6px;
+
+    margin-top: 20px;
+    margin-left: @left-margin;
+    width: @textarea-width;
+    float: left;
+
+    input {
+        margin-top: @gap;
+        margin-left: @left-margin;
+        width: @button-width;
+        height: @button-height;
+    }
+
+    textarea {
+        margin-top: @gap;
+        margin-left: @left-margin;
+        height: @box-height;
+        width: @textarea-width;
+        resize: none;
+    }
+
+    .status {
+        margin-left: @left-margin + 7px;
+        margin-top: 7px;
+        color: #999;
+    }
+
+    button {
+        margin-top: -15px;
+        margin-left: @left-margin + @textarea-width - @button-width;
+        width: @button-width;
+        height: @button-height;
+    }
+}
+
+#onlines {
+    @pad: 10px;
+    width: 220px - 2 * @pad;
+    height: 150px - 2 * @pad;
+    padding: @pad;
+    margin-left: 35px;
+    margin-top: 25px;
+    background-color: #eee;
+    float: left;
+    overflow: hidden;
+    h4 {
+        text-align: center;
+        font-size: 150%;
+    }
+    ul {
+        height: 150px - 2 * @pad - 16px;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        li {
+            text-align: center;
+            margin: 4px;
+        }
+    }
+}
+
+
+#footer {
+    clear: both;
+    text-align: right;
+    margin-top: 260px;
+    span {
+        display: block;
+    }
+}
+

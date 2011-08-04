@@ -1,0 +1,16 @@
+<% 
+    var unique_authors = {};
+    coll.each(function(model) {
+        var author = model.get('author');
+        if (unique_authors[author])
+            return;
+        else
+            unique_authors[author] = true;
+%>
+    <li><a class="local-nav" href="#!/author/<%= author %>">
+        <%= author %>
+    </a></li>
+
+<%
+    });
+%>

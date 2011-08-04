@@ -20,9 +20,8 @@ def cleanup_channel(app_name):
 def send_message(app_name, cid, message):
     get_appchannel(app_name).get(cid).put(message)
 
-def broadcast_message(app_name, message):
-    for ch in get_appchannel(app_name).iterchannels():
-        print 'put to %s, %s' % (ch, message)
+def broadcast_message(app_name, message): # huh..
+    for ch in list(get_appchannel(app_name).iterchannels()):
         ch.put(message)
 
 def once(func):

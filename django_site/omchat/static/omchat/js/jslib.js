@@ -7,7 +7,8 @@
     var dependencies = [
         'backbone-relational',
         'backbone-tastypie',
-        'json2'
+        'json2',
+        'less'
     ];
 
     /* module defination */

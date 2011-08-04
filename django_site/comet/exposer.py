@@ -5,26 +5,30 @@ import time
 import json
 from collections import deque, OrderedDict
 
-def jsonp_resp(req, data='', nofinish=False):
-    func_name = ''.join(req.args.get('callback', []))
-    resp = '%s(%s);' % (func_name, data)
-    if isinstance(resp, unicode):
-        resp = resp.encode('utf-8')
+def jsonp_resp(request, data=None, nofinish=False):
+    """response with the given data.
+    if nofinish is True, don't finish request.
+
+    Note that json.dumps will return a bytearray, which is very good."""
+    func_name = ''.join(request.args.get('callback', []))
+    response = '%s(%s);' % (func_name, json.dumps(data))
     if nofinish:
-        return resp
+        return response
     else:
-        req.setHeader('Content-Type', 'application/javascript')
-        req.write(resp)
-        req.finish()
+        request.setHeader('Content-Type', 'application/javascript; charset=utf-8')
+        request.write(response)
+        request.finish()
+
 
 def format_err(*argl, **kw):
     err = {}
     if argl:
         err['__all__'] = argl
     err.update(kw)
-    return json.dumps({
+    return {
         'errors': err
-    })
+    }
+
 
 class ChannelException(Exception):
     def make_request(self, req):
@@ -38,14 +42,25 @@ class ChannelTimeout(ChannelException):
     def make_request(self, req):
         jsonp_resp(req, format_err('ChannelTimeout'))
 
+class ChannelDead(ChannelException):
+    def make_request(self, req):
+        jsonp_resp(req, format_err('ChannelDead'))
+
 class Channel(object):
-    def __init__(self):
+    def __init__(self, cid, parent):
+        self.cid = cid
+        self.parent = parent
         self.data_queue = deque()
-        self.t_created = time.time()
-        self.client_d = None
-        self.d_call = None
+        self.timestamp = time.time()
+        self.client_d = None # used to callback
+        self.d_call = None   # the timeout canceller
 
     def put(self, data):
+        """data must be a json-encodable object.
+        will be wrapped in {msg: data} when doing response
+        
+        TODO: lock."""
+        self.parent.refresh(self)
         if self.client_d:
             self.client_d.callback(data)
             self.d_call.cancel()
@@ -55,6 +70,7 @@ class Channel(object):
             self.data_queue.append(data)
 
     def get(self, timeout=60):
+        self.parent.refresh(self)
         from twisted.internet import defer
         if self.client_d:
             # one channel can only have one binding
@@ -89,6 +105,10 @@ class ChannelManager(object):
                 return key
         self.cid_gen = cid_gen
 
+        from simplecron.api import register, start_cron
+        register(self.clean_up)
+        start_cron()
+
     def iterchannels(self):
         return self.channels.itervalues()
 
@@ -97,8 +117,14 @@ class ChannelManager(object):
 
     def create(self):
         cid = self.cid_gen()
-        self.channels[cid] = Channel()
+        self.channels[cid] = Channel(cid, parent=self)
         return cid
+
+    def refresh(self, ch):
+        cid = ch.cid
+        del self.channels[cid]
+        self.channels[cid] = ch
+        ch.timestamp = time.time()
 
     def get(self, cid):
         return self.channels[cid]
@@ -116,7 +142,8 @@ class ChannelManager(object):
                 to_del.append((cid, ch))
         for cid, ch in to_del:
             del self.channels[cid]
-            ch.put(None) # in case someone is listening
+            if ch.client_d:
+                ch.client_d.errback(ChannelDead())
         return len(to_del)
 
 
@@ -148,8 +175,6 @@ def create_server_factory():
                         format_err(app=['no such cid']), True)
 
             def on_msg_recvd(msg):
-                if isinstance(msg, unicode):
-                    msg = msg.encode('utf-8')
                 jsonp_resp(request, {'msg': msg})
 
             def on_err_caught(reason):
@@ -168,21 +193,4 @@ def create_server_factory():
 
     comet_resource = ChannelHandler(app_managers)
     return server.Site(comet_resource)
-
-
-def init_comet():
-    from twisted.internet import reactor
-    cm = app_managers['omchat'] = ChannelManager()
-    cid = cm.create()
-    print cid
-    reactor.callLater(5, lambda: cm.get(cid).put('HEHEHE'))
-
-def test():
-    from twisted.internet import reactor
-    reactor.listenTCP(8080, create_server_factory())
-    init_comet()
-    reactor.run()
-
-if __name__ == '__main__':
-    test()
 

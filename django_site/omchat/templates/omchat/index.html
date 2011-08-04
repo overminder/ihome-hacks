@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% block title %}
-OmChat - Index
+OmChat - Say whatever you want!
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ STATIC_URL }}omchat/css/notless.css" type="text/css" media="screen" charset="utf-8">
+<link rel="stylesheet/less" href="{{ STATIC_URL }}omchat/css/site.less" type="text/css" media="screen" charset="utf-8">
 {% endblock %}
 
 {% block js %}
@@ -8,14 +13,52 @@ OmChat - Index
 {% endblock %}
 
 {% block body %}
-<div id="chat-form">
-    <textarea></textarea>
-    <button>Say!</button>
+
+<div id="header">
+    <h2>OmChat</h2>
 </div>
-<ul id="chat-list"></ul>
-<hr />
-<div>
-    Source code: <a href="https://github.com/overminder/ihome-hacks">Github</a>
+
+<div id="chat-list">
+    <ul></ul>
+    <div class="last-pub-time">
+        <span class="info">
+            last message received at
+        </span>
+        <span class="time"></span>
+    </div>
 </div>
+
+<div id="mouth">
+    <div><input placeholder="Name" type="text" /></div>
+    <textarea placeholder="Say something..." class="texts"></textarea>
+    <div class="status">.</div>
+    <button class="say">Say!</button>
+</div>
+
+<div id="onlines">
+    <h4>Active Users</h4>
+    <ul>
+    </ul>
+</div>
+
+<div id="footer">
+    <span> Source code: <a href="https://github.com/overminder/ihome-hacks">Github</a> </span>
+</div>
+
+<script type="text/javascript" charset="utf-8">
+    (function() {
+        var export = window;
+        if (!export.app)
+            export.app = {};
+        export.app.cid = '{{ cid }}';
+    {% autoescape off %}
+        export.app.initdata = {{ initdata }};
+        export.app.initdata.objects.sort(function(l, r) {
+            return Number(l.id) > Number(r.id);
+        });
+    {% endautoescape %}
+    })();
+</script>
+
 {% endblock %}
 
