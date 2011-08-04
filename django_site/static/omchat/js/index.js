@@ -122,14 +122,22 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
             this.list_sel = opt.list_sel || ' > ul';
         },
         add_one: function(model) {
-            var itemview = new this.view_class({
-                model: model
-            });
-            this.$(this.list_sel).append(itemview.render().el);
-            $('#chat-list').prop('scrollTop', 99999);  /* dirty hack... */
+            if (!this.filter_func || (this.filter_func && this.filter_func(model))) {
+                var itemview = new this.view_class({
+                    model: model
+                });
+                this.$(this.list_sel).append(itemview.render().el);
+                $('#chat-list').prop('scrollTop', 99999);  /* dirty hack... */
+            }
         },
         add_all: function() {
             this.collection.each(this.add_one);
+        },
+        filter_display: function(filter_func) {
+            var self = this;
+            this.$(this.list_sel).empty();
+            this.filter_func = filter_func;
+            this.add_all();
         }
     });
 
@@ -145,7 +153,6 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
             }));
         }
     });
-
 
     $(function() {
         $('#chat-list .last-pub-time').hide();
@@ -215,6 +222,7 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
             }
         });
 
+
         var chat_listview = new ChatListView({
             el: $('#chat-list'),
             collection: chat_coll,
@@ -262,5 +270,25 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
 
         ch.connect();
         chat_coll.add(chat_coll.parse(app.initdata));
+
+        var Router = Backbone.Router.extend({
+            routes: {
+                '!/': 'filter_none',
+                '!/author/*argl': 'filter_by_author'
+            },
+            filter_none: function() {
+                chat_listview.filter_display();
+            },
+            filter_by_author: function(author) {
+                chat_listview.filter_display(function(model) {
+                    return model.get('author') == author
+                });
+            }
+        });
+
+        app.router = new Router
+        Backbone.history.start();
+        Backbone.history.navigate('#!/', true);
+
     });
 });

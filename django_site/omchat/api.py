@@ -34,7 +34,9 @@ def dump_rc(rc_class, obj_or_list):
         bundle = build_bundle(obj_or_list)
         res = get_data(bundle)
 
-    return rc.serialize(None, res, 'application/json')
+    res = rc.serialize(None, res, 'application/json')
+    # copied from google plus~
+    return res.replace('<', '\u003c').replace('>', '\u003e')
 
 
 class ChatRc(ModelResource):
