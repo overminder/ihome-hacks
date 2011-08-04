@@ -1,0 +1,14 @@
+{% extends "omtwit/base.html" %}
+{% block title %}
+Index
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript" charset="utf-8">
+    window.app = window.app || {};
+{% autoescape off %}
+    window.app.initdata = {{ initdata }};
+{% endautoescape %}
+</script>
+<script src="{{ STATIC_URL}}omtwit/js/require.js" data-main="{{ STATIC_URL }}omtwit/js/index" type="text/javascript" charset="utf-8"> </script>
+{% endblock %}

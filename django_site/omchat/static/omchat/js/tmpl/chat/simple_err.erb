@@ -1,0 +1,11 @@
+<h3>Error</h3>
+<% 
+    _.each(errors, function(val, key) {
+%>
+<div><%= key %>: <%= val %></div>
+<hr />
+
+<%
+    });
+%>
+

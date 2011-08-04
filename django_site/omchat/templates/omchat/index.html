@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}
+OmChat - Index
+{% endblock %}
+
+{% block js %}
+<script src="{{ STATIC_URL}}omchat/js/require.js" data-main="{{ STATIC_URL }}omchat/js/index" type="text/javascript" charset="utf-8"> </script>
+{% endblock %}
+
+{% block body %}
+<div id="chat-form">
+    <textarea></textarea>
+    <button>Say!</button>
+</div>
+<ul id="chat-list"></ul>
+{% endblock %}
+
