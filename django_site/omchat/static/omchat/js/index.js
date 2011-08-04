@@ -269,6 +269,7 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
         });
 
         ch.connect();
+
         chat_coll.add(chat_coll.parse(app.initdata));
 
         var Router = Backbone.Router.extend({
@@ -286,7 +287,7 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
             }
         });
 
-        app.router = new Router
+        app.router = new Router;
         Backbone.history.start();
         Backbone.history.navigate('#!/', true);
 

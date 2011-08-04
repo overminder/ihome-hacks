@@ -36,7 +36,7 @@ OmChat - Say whatever you want!
 </div>
 
 <div id="onlines">
-    <h4>Active Users</h4>
+    <h4>Recent Users</h4>
     <ul>
     </ul>
 </div>
@@ -53,10 +53,8 @@ OmChat - Say whatever you want!
         export.app.cid = '{{ cid }}';
     {% autoescape off %}
         export.app.initdata = {{ initdata }};
-        export.app.initdata.objects.sort(function(l, r) {
-            return Number(l.id) > Number(r.id);
-        });
     {% endautoescape %}
+    export.app.initdata.objects.reverse();
     })();
 </script>
 

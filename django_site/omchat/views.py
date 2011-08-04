@@ -15,7 +15,7 @@ def index(request):
     cid = create_channel('omchat')
 
     # prepare for list of chats
-    chat_list = Chat.objects.order_by('-id')[:20]
+    chat_list = Chat.objects.order_by('-pub_time')[:20]
 
     return render_to_response('omchat/index.html', {
             'cid': cid,
