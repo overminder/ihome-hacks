@@ -161,10 +161,7 @@
 
 define([], function() {
 
-var JSON;
-if (!JSON) {
-    JSON = {};
-}
+var JSON = window.JSON = {};
 
 (function () {
     "use strict";

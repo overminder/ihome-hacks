@@ -4,7 +4,7 @@
 //     For all details and documentation:
 //     http://documentcloud.github.com/backbone
 
-define(['jquery', 'underscore'], function($) {
+define(['jquery', 'underscore', 'json2'], function($) {
 
   // Initial Setup
   // -------------

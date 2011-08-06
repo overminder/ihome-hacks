@@ -5,7 +5,7 @@
 </span>
 
 <div class="content">
-    <%= model.get('content') %>
+    <%- String.nl2br(_.escapeHTML(model.get('content'))) %>
 </div>
 
 

@@ -15,9 +15,19 @@ def jsonp_resp(request, data=None, nofinish=False):
     if nofinish:
         return response
     else:
-        request.setHeader('Content-Type', 'application/javascript; charset=utf-8')
+        if not request._disconnected:
+            request.setHeader('Content-Type', 'application/javascript; charset=utf-8')
+            request.write(response)
+            request.finish()
+
+def stream_resp(request, data=None):
+    func_name = ''.join(request.args.get('callback', []))
+    #response = '<script type="text/javascript">%s(%s);</script>' % (
+    #        func_name, json.dumps(data))
+    response = '%s(%s);' % (func_name, json.dumps(data))
+    if not request._disconnected:
         request.write(response)
-        request.finish()
+        request.write('\r\n')
 
 
 def format_err(*argl, **kw):
@@ -46,6 +56,7 @@ class ChannelDead(ChannelException):
     def make_request(self, req):
         jsonp_resp(req, format_err('ChannelDead'))
 
+
 class Channel(object):
     def __init__(self, cid, parent):
         self.cid = cid
@@ -63,8 +74,9 @@ class Channel(object):
         self.parent.refresh(self)
         if self.client_d:
             self.client_d.callback(data)
-            self.d_call.cancel()
-            self.d_call = None
+            if self.d_call:
+                self.d_call.cancel()
+                self.d_call = None
             self.client_d = None
         else:
             self.data_queue.append(data)
@@ -87,8 +99,9 @@ class Channel(object):
                 self.d_call = None
                 self.client_d = None
 
-            from twisted.internet import reactor
-            self.d_call = reactor.callLater(timeout, on_timeout)
+            if timeout:
+                from twisted.internet import reactor
+                self.d_call = reactor.callLater(timeout, on_timeout)
             return self.client_d
 
 
@@ -105,9 +118,12 @@ class ChannelManager(object):
                 return key
         self.cid_gen = cid_gen
 
-        from simplecron.api import register, start_cron
-        register(self.clean_up)
-        start_cron()
+        try:
+            from simplecron.api import register, start_cron
+            register(self.clean_up)
+            start_cron()
+        except ImportError:
+            pass
 
     def iterchannels(self):
         return self.channels.itervalues()
@@ -153,26 +169,17 @@ def create_server_factory():
     from twisted.web import resource, server
 
     class ChannelHandler(resource.Resource):
+        """we have two kinds of listening request:
+        /app_ns/cid/once?callback=cb
+        /app_ns/cid/bind?callback=cb
+        """
         isLeaf = True
         def __init__(self, managers):
             self.managers = managers
             resource.Resource.__init__(self)
 
-        def render_GET(self, request):
-            try:
-                _, app_ns, cid = request.path.split('/')
-            except ValueError:
-                return jsonp_resp(request,
-                        format_err('invalid url'), True)
-
-            if app_ns not in self.managers:
-                return jsonp_resp(request,
-                        format_err(app=['no such app']), True)
-
-            channels = self.managers[app_ns]
-            if not channels.has(cid):
-                return jsonp_resp(request,
-                        format_err(app=['no such cid']), True)
+        def handle_once(self, request, ch):
+            d = ch.get()
 
             def on_msg_recvd(msg):
                 jsonp_resp(request, {'msg': msg})
@@ -185,12 +192,84 @@ def create_server_factory():
                     jsonp_resp(request, format_err('UnknownError',
                         traceback.format_exc()))
 
-            ch = channels.get(cid)
-            d = ch.get()
             d.addCallback(on_msg_recvd)
             d.addErrback(on_err_caught)
             return server.NOT_DONE_YET
 
+        def handle_bind(self, request, ch):
+            def send_once():
+                d = ch.get(0) # no timeout
+                def on_msg_recvd(msg):
+                    stream_resp(request, {'msg': msg})
+                    send_once()
+
+                def on_err_caught(reason):
+                    if isinstance(reason.value, ChannelException):
+                        reason.value.make_request(request)
+                    else:
+                        import traceback
+                        jsonp_resp(request, format_err('UnknownError',
+                            traceback.format_exc()))
+
+                d.addCallback(on_msg_recvd)
+                d.addErrback(on_err_caught)
+            send_once()
+            return server.NOT_DONE_YET
+
+        def render_GET(self, request):
+            try:
+                _, app_ns, cid, action = request.path.split('/')
+            except ValueError:
+                return jsonp_resp(request,
+                        format_err('invalid url'), True)
+
+            if app_ns not in self.managers:
+                return jsonp_resp(request,
+                        format_err(app=['no such app']), True)
+
+            if action not in ('once',):
+                return jsonp_resp(request,
+                        format_err(action=[
+                        'supported actions are: ["once"]']))
+
+            channels = self.managers[app_ns]
+            if not channels.has(cid):
+                return jsonp_resp(request,
+                        format_err(app=['no such cid']), True)
+
+            ch = channels.get(cid)
+            return getattr(self, 'handle_' + action)(request, ch)
+
+
     comet_resource = ChannelHandler(app_managers)
     return server.Site(comet_resource)
+
+
+def test():
+    port = 8443
+    from twisted.internet import pollreactor
+    pollreactor.install()
+    from twisted.internet import reactor
+    reactor.listenTCP(port, create_server_factory())
+
+    cm = app_managers['x'] = ChannelManager()
+    cid = cm.create()
+    ch = cm.get(cid)
+    print 'cid = %s' % cid
+
+    # and add some things
+    def add_one():
+        import time
+        msg = {
+            'time': time.time()
+        }
+        print 'put %r' % msg
+        ch.put(msg)
+        reactor.callLater(1, add_one)
+    reactor.callLater(1, add_one)
+
+    reactor.run()
+
+if __name__ == '__main__':
+    test()
 

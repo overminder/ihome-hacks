@@ -37,6 +37,22 @@
             }
         });
 
+        /* nl2br */
+        String.nl2br = function (s) {
+            var text = escape(s);
+            if (text.indexOf('%0D%0A') > -1){
+                re_nlchar = /%0D%0A/g ;
+            } else if (text.indexOf('%0A') > -1){
+                re_nlchar = /%0A/g ;
+            } else if (text.indexOf('%0D') > -1){
+                re_nlchar = /%0D/g ;
+            } else {
+                return String(s);
+            }
+            return unescape( text.replace(re_nlchar,'<br />') );
+        };
+
+
         return {
             $: jQuery,
             _: _,

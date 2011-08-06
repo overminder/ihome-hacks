@@ -1,11 +1,11 @@
 require(['tmpl-packed', 'jslib'], function(tmpls) {
 
-    var export = window;
+    var _root = window;
 
-    if (export.app)
-        var app = export.app;
+    if (_root.app)
+        var app = _root.app;
     else
-        var app = export.app = {};
+        var app = _root.app = {};
 
     /* app.js */
     app.name = 'omchat';
@@ -32,13 +32,13 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
     };
 
     Channel.prototype = {
-        _fetch: function() {
+        _fetch_once: function() {
             if (this.stopped)
                 return;  /* don't do anything if we are stopped */
 
             var self = this;
             var dfd = $.ajax({
-                url: this.endpoint,
+                url: this.endpoint + '/once',
                 dataType: 'jsonp'
             });
             dfd.done(function(resp) {
@@ -48,7 +48,7 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
                     if (errors.__all__ &&
                         errors.__all__[0] == 'ChannelTimeout') {
                         /* re-fetch in the next event loop */
-                        self._fetch();
+                        self._fetch_once();
                     }
                     else {
                         /* errors that we cannot handle. */
@@ -58,17 +58,20 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
                 else {
                     /* got message: fetch again */
                     self.trigger('msg', resp.msg);
-                    self._fetch();
+                    self._fetch_once();
                 }
             });
         },
 
-        connect: function() {
+        connect: function(type) {
             if (this.conn_established)
                 return;
+            if (!type)
+                type = 'once';
+
             var self = this;
             this.conn_established = true;
-            this._fetch();
+            this['_fetch_' + type]();
         }
     };
 
@@ -104,6 +107,7 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
         initialize: function() {
             _.bindAll(this);
             this.model.bind('change', this.render);
+            $(this.render().el).fadeOut(0).fadeIn(300);
         },
         render: function() {
             $(this.el).html(this.template({
@@ -151,6 +155,57 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
             this.$(' > ul').html(this.template({
                 coll: this.collection
             }));
+        }
+    });
+
+    var InputHandler = Backbone.View.extend({
+        events: {
+            'change textarea': 'content_changed',
+            'click button': 'submit_content'
+        },
+        initialize: function(opt) {
+            this.input = this.$('input');
+            this.textarea = this.$('textarea');
+            this.submit = this.$('button');
+            this.status_url = opt.status_url;
+            this.submit_url = opt.submit_url;
+            this.stat = 'not-editing';
+            _.bindAll(this);
+
+            var self = this;
+
+            this.bind('status:change', function(new_stat) {
+                if (self.stat == new_stat) {
+                    return;
+                }
+                else {
+                    self.stat = new_stat;
+                    self.notify_remote(new_stat);
+                }
+            });
+        },
+        submit_content: function() {
+        },
+        textarea_changed: function() {
+            var val = this.get_content();
+            if (!val) {
+                this.trigger('status:change', 'not-editing');
+            }
+            else {
+                this.trigger('status:change', 'editing');
+            }
+        },
+        notify_remote: function(stat) {
+            $.post(this.status_url, {
+                author: this.get_author(),
+                status: stat
+            });
+        },
+        get_author: function() {
+            return this.input.val();
+        },
+        get_content: function() {
+            return this.textarea.val();
         }
     });
 
@@ -216,7 +271,7 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
             if (form.find('textarea').val() == '') {
                 notify_editing(form.find('input').val());
             }
-            if (e.keyCode == 13) {
+            if (e.keyCode == 13 && e.shiftKey) {
                 form.find('button').trigger('click');
                 return false;
             }
