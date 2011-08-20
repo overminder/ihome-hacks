@@ -172,6 +172,7 @@ def create_server_factory():
         """we have two kinds of listening request:
         /app_ns/cid/once?callback=cb
         /app_ns/cid/bind?callback=cb
+        ...i think maybe we just use 'once' only.
         """
         isLeaf = True
         def __init__(self, managers):

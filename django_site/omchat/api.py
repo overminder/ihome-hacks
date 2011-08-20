@@ -73,6 +73,8 @@ class ChatRc(ModelResource):
                     return {'__all__': 'should not be null'}
 
                 errors = {}
+
+                # set author to remote ip addr if no author name present
                 if not bundle.data.get('author'):
                     bundle.data['author'] = request.META['REMOTE_ADDR']
 
