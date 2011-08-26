@@ -2,6 +2,7 @@
 from tastypie.api import Api
 from tastypie.resources import ModelResource
 from tastypie import fields
+from tastypie.serializers import Serializer
 from tastypie.authorization import Authorization
 from tastypie.validation import Validation
 from omchat.models import Chat
@@ -35,7 +36,7 @@ def dump_rc(rc_class, obj_or_list):
         res = get_data(bundle)
 
     res = rc.serialize(None, res, 'application/json')
-    # copied from google plus~
+    # copied from google plus: escape html characters using js utf-8 literal
     return res.replace('<', '\u003c').replace('>', '\u003e')
 
 
@@ -51,8 +52,17 @@ class ChatRc(ModelResource):
         queryset = Chat.objects.all()
         resource_name = 'chat'
 
+        class ChatSerializer(Serializer):
+            def format_datetime(self, data):
+                """adding timezone to serialzed data"""
+                from omutil.dateformat import as_IsoUTC
+                return as_IsoUTC(data)
+
+        serializer = ChatSerializer()
+
         class ChatRcAuth(Authorization):
             def is_authorized(self, request, obj=None):
+                """can only read or create"""
                 method = request.method
                 if method in ('GET', 'POST'):
                     return True
