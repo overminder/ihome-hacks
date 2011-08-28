@@ -1,0 +1,21 @@
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline;}
+article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block;}
+body{line-height:1;}
+ol,ul{list-style:none;}
+blockquote,q{quotes:none;}
+blockquote:before,blockquote:after,q:before,q:after{content:'';content:none;}
+table{border-collapse:collapse;border-spacing:0;}
+input[type=text],input[type=email],input[type=password],textarea{width:160px;border:1px solid #DDDDDD;padding:3px 4px;border-radius:3px;-moz-border-radius:3px;-webkit-border-radius:3px;-khtml-border-radius:3px;box-shadow:0 1px 3px #DDD inset;-moz-box-shadow:0 1px 3px #DDD inset;-webkit-box-shadow:0 1px 3px #DDD inset;}
+input[type=text],input[type=email],input[type=password]{height:16px;}
+textarea{width:360px;}
+body{font-size:14px;font-family:"Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif;width:712px;margin:auto;}
+#header h2{text-align:center;font-size:200%;margin:20px;}
+#chat-list{margin:auto;width:688px;height:350px;border-color:#ccc;border-width:1px;border-style:solid;overflow:scroll;overflow-x:hidden;}#chat-list>ul>li{padding:10px 20px;}
+#chat-list .last-pub-time{color:#999;padding:10px 20px;}#chat-list .last-pub-time .time{font-style:italic;}
+#mouth{margin-top:20px;margin-left:12px;width:430px;float:left;}#mouth input{margin-top:6px;margin-left:12px;width:120px;height:24px;}
+#mouth textarea{margin-top:6px;margin-left:12px;height:90px;width:430px;resize:none;}
+#mouth .status{margin-left:19px;margin-top:7px;color:#999;}
+#mouth button{margin-top:-15px;margin-left:322px;width:120px;height:24px;}
+#onlines{width:200px;height:130px;padding:10px;margin-left:35px;margin-top:25px;background-color:#eee;float:left;overflow:hidden;}#onlines h4{text-align:center;font-size:150%;}
+#onlines ul{height:114px;overflow-x:hidden;overflow-y:scroll;}#onlines ul li{text-align:center;margin:4px;}
+#footer{clear:both;text-align:right;margin-top:260px;}#footer span{display:block;}

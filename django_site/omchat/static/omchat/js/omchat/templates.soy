@@ -1,0 +1,16 @@
+{namespace omchat.templates}                                                   
+
+/**
+ * @param author
+ * @param content
+ */
+{template .chat_item}
+    <span class="author">
+        <a class="local-nav" href="#!/author/{$author}">
+            {$author}:
+        </a>
+    </span>
+    <div class="content">
+        {$content}
+    </div>
+{/template}

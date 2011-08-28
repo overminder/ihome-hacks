@@ -4,8 +4,8 @@ import json
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.shortcuts import render_to_response
-from comet.api import (create_channel, send_message, broadcast_message,
-        cleanup_channel, get_appchannel)
+from comet.api import (create_channel, broadcast_message, cleanup_channel,
+        get_appchannel)
 from omchat.api import ChatRc, dump_rc
 from omchat.models import Chat
 
@@ -22,6 +22,21 @@ def index(request):
             'initdata': dump_rc(ChatRc, chat_list)
         }, context_instance=RequestContext(request)
     )
+
+def index_dev(request):
+    # prepare for channel id
+    cid = create_channel('omchat')
+
+    # prepare for list of chats
+    chat_list = Chat.objects.order_by('-pub_time')[:20]
+
+    return render_to_response('omchat/index2.html', {
+            'cid': cid,
+            'initdata': dump_rc(ChatRc, chat_list),
+            'closure_compiled': False
+        }, context_instance=RequestContext(request)
+    )
+    
 
 def json_resp(data=None):
     if data is None:

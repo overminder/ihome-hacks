@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}
+OmChat - Say whatever you want!
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ STATIC_URL }}omchat/css/site.less.css" type="text/css" charset="utf-8">
+{% endblock %}
+
+{% block js %}
+    <script>
+    {% autoescape off %}
+        var omchat_initdata = {{ initdata }};
+        var omchat_cid = '{{ cid }}';
+    {% endautoescape %}
+    </script>
+
+{% if not closure_compiled %}
+    <script src="{{ STATIC_URL}}omchat/js/goog-closure/library/goog/base.js"></script>
+    <script src="{{ STATIC_URL}}omchat/js/omchat/main-deps.js"></script>
+    <script src="{{ STATIC_URL}}omchat/js/omchat/main.js"></script>
+    <script>
+        goog.require('omchat.main');
+        omchat.main();
+    </script>
+{% else %}
+    <script src="{{ STATIC_URL}}omchat/js/omchat/main-compiled.js"></script>
+    <script>
+        omchat.main();
+    </script>
+{% endif %}
+
+{% endblock %}
+
+{% block body %}
+
+<div id="header">
+    <h2>OmChat</h2>
+</div>
+
+<div id="chat-list">
+    <ul></ul>
+    <div class="last-pub-time">
+        <span class="info">
+            last message received at
+        </span>
+        <span class="time"></span>
+    </div>
+</div>
+
+<div id="mouth">
+    <div><input placeholder="Name" type="text" /></div>
+    <textarea placeholder="Say something... (shift + enter to submit)" class="texts"></textarea>
+    <div class="status">.</div>
+    <button class="say">Say!</button>
+</div>
+
+<div id="onlines">
+    <h4>Recent Users</h4>
+    <ul>
+    </ul>
+</div>
+
+<div id="footer">
+    <span> Source code: <a href="https://github.com/overminder/ihome-hacks">Github</a> </span>
+</div>
+
+{% endblock %}
+
