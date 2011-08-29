@@ -6,13 +6,12 @@ goog.require('goog.events');
 goog.require('goog.events.EventTarget');
 goog.require('goog.events.EventHandler');
 goog.require('goog.object');
+goog.require('cBackbone.sync');
 
 /** Event names for model/collection events
  * @enum {string}
  */
 cBackbone.models.EventType = {
-    INIT: goog.events.getUniqueId('init'),
-    CREATE: goog.events.getUniqueId('create'),
     ADD: goog.events.getUniqueId('add'),
     DESTROY: goog.events.getUniqueId('destroy'),
     REMOVE: goog.events.getUniqueId('remove'),
@@ -146,6 +145,8 @@ cBackbone.models.Model.prototype.getUrl = goog.abstractMethod;
 
 /**
  * To be overridden by the subclass
+ * @param {Object} attr
+ * @param {Object} opt
  * @protected
  */
 cBackbone.models.Model.prototype.initializeInternal = goog.nullFunction;
@@ -260,7 +261,7 @@ cBackbone.models.Model.prototype.fetch = function(options) {
         else
             return e;
     };
-    return cBackbone.sync(this, 'read', this, options);
+    return cBackbone.sync.getByVendorName()('read', this, options);
 };
 
 
@@ -291,8 +292,8 @@ cBackbone.models.Model.prototype.save = function(attrs, options) {
             return e;
     };
     // TODO: error handling
-    var method = this.isNew() ? 'create' : 'update';
-    return cBackbone.sync(this, method, this, options);
+    var action = this.isNew() ? 'create' : 'update';
+    return cBackbone.sync.getByVendorName()(action, this, options);
 };
 
 
@@ -318,7 +319,7 @@ cBackbone.models.Model.prototype.destroy = function(attrs, options) {
             return e;
     };
     // TODO: error handling
-    return cBackbone.sync(this, 'delete', this, options);
+    return cBackbone.sync.getByVendorName()('delete', this, options);
 };
 
 
@@ -405,11 +406,6 @@ cBackbone.models.Collection = function(models, options) {
     if (!goog.isDefAndNotNull(options))
         options = {};
 
-    /**
-     * @type {Function}
-     * @protected
-     */
-    this.comparator_ = null;
     if (goog.object.containsKey(options, "comparator"))
         this.comparator_ = options["comparator"];
 
@@ -444,6 +440,13 @@ cBackbone.models.Collection = function(models, options) {
 };
 goog.inherits(cBackbone.models.Collection, goog.events.EventTarget);
 
+/**
+ * To be overridden.
+ * @type {Function}
+ * @protected
+ */
+cBackbone.models.Collection.prototype.comparator_ = null;
+
 
 /**
  * The constructor of the model that belongs to this collection.
@@ -463,6 +466,8 @@ cBackbone.models.Collection.prototype.getUrl = goog.abstractMethod;
 
 /**
  * Overriden by the user to provide custon behavior of initialization.
+ * @param {Object} attr
+ * @param {Object} opt
  * @protected
  */
 cBackbone.models.Collection.prototype.initializeInternal = goog.nullFunction;
@@ -648,7 +653,7 @@ cBackbone.models.Collection.prototype.fetch = function(options) {
     };
 
     // TODO: error handling
-    return cBackbone.sync(this, 'read', this, options);
+    return cBackbone.sync.getByVendorName()('read', this, options);
 };
 
 
@@ -656,7 +661,7 @@ cBackbone.models.Collection.prototype.fetch = function(options) {
  * Create a new instance of a model in this collection. After the model
  * has been created on the server, it will be added to the collection.
  * Return s the model, or `false` if the validation on a new model fails.
- * @param {cBackbone.models.Model} model
+ * @param {cBackbone.models.Model|Object} model Model instance or raw data
  * @param {Object=} options
  * @return {goog.async.Deferred}
  */
@@ -780,7 +785,7 @@ cBackbone.models.Collection.prototype.addInternal = function(
     model.setParentEventTarget(this);
 
     if (!options["silent"])
-        model.trigger(cBackbone.models.EventType.ADD);
+        model.dispatchEvent(cBackbone.models.EventType.ADD);
     return model;
 };
 
@@ -879,7 +884,7 @@ cBackbone.models.CollectionEventHandler.prototype.handleEvent = function(e) {
             return;
         }
         if (type == cBackbone.models.EventType.DESTROY)
-            this.removeInternal(target);
+            this.collection_.removeInternal(target);
         // XXX: Unlike Backbone.js, we do not have a way to handle the
         // `change:id` event of a model.
     }

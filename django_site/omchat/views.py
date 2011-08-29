@@ -33,7 +33,7 @@ def index_dev(request):
     return render_to_response('omchat/index2.html', {
             'cid': cid,
             'initdata': dump_rc(ChatRc, chat_list),
-            'closure_compiled': False
+            'closure_compiled': True
         }, context_instance=RequestContext(request)
     )
     

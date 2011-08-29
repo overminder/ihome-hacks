@@ -13,7 +13,7 @@ goog.require('soy.StringBuilder');
  * @return {string|undefined}
  * @notypecheck
  */
-omchat.templates.chat_item = function(opt_data, opt_sb) {
+omchat.templates.chatItem = function(opt_data, opt_sb) {
   var output = opt_sb || new soy.StringBuilder();
   output.append('<span class="author"><a class="local-nav" href="#!/author/', soy.$$escapeHtml(opt_data.author), '">', soy.$$escapeHtml(opt_data.author), ':</a></span><div class="content">', soy.$$escapeHtml(opt_data.content), '</div>');
   if (!opt_sb) return output.toString();

@@ -1,10 +1,21 @@
 goog.provide('cBackbone.sync');
-goog.provide('cBackbone.django');
 
 goog.require('goog.async.Deferred');
 goog.require('goog.events');
-goog.require('goog.net.Cookies');
 goog.require('goog.net.XhrIo');
+goog.require('goog.object');
+
+
+/**
+ * @enum {string}
+ */
+cBackbone.sync.methodMap = {
+    "create": "POST",
+    "update": "PUT",
+    "delete": "DELETE",
+    "read": "GET"
+};
+
 
 /**
  * Override this function to change the manner in which Backbone persists
@@ -20,22 +31,23 @@ goog.require('goog.net.XhrIo');
  * - url
  * - success
  * - data
+ * - headers
  *
- * @param {cBackbone.models.Model} obj The object to be synchronized
  * @param {string} action To be translated into HTTP method
- * @param {cBackbone.models.Model|cBackbone.models.Collection} model
+ * @param {cBackbone.models.Model|cBackbone.models.Collection} model The model
+ * to be synchronized.
  * @param {Object} options See options above.
  * @return {goog.async.Deferred}
  */
-cBackbone.sync = function(obj, action, model, options) {
-    /** @define {string} */
+cBackbone.sync.defaultSync = function(action, model, options) {
+    /** @type {string} */
     var method = cBackbone.sync.methodMap[action];
 
     // Ensure that we have a URL.
-    /** @define {Object} */
+    /** @type {Object} */
     var params = goog.object.clone(options);
     if (!params["url"])
-        params["url"] = model.getUrl();
+        params["url"] = model.getUrl() || model.getCollection().getUrl();
 
     // Ensure that we have the appropriate request data.
     if (!params["data"] && model &&
@@ -46,12 +58,10 @@ cBackbone.sync = function(obj, action, model, options) {
     var headers = {
         "Content-Type": "application/json"
     };
-
-    if (action !== 'read') {
-        headers["X-CSRFToken"] = cBackbone.django.getCsrf();
-    }
+    goog.object.extend(headers, params["headers"] || {});
 
     // The Deferred object to be returned
+    // TODO: errback as well?
     var d = new goog.async.Deferred();
     d.addCallback(params["success"]);
 
@@ -64,19 +74,41 @@ cBackbone.sync = function(obj, action, model, options) {
     return d;
 };
 
-/**
- * @enum {string}
+/** 
+ * Vendors to use.
+ * @type {Object}
  */
-cBackbone.sync.methodMap = {
-    "create": "POST",
-    "update": "PUT",
-    "delete": "DELETE",
-    "read": "GET"
+cBackbone.sync.vendorMap = {
+    "Backbone": cBackbone.sync.defaultSync
 };
 
+/** @type {string} */
+cBackbone.sync.defaultVendor = 'Backbone';
 
-/** @return {string} */
-cBackbone.django.getCsrf = function() {
-    return (new goog.net.Cookies(document)).get('csrftoken');
+/** 
+ * @param {string} name
+ */
+cBackbone.sync.setDefaultVendor = function(name) {
+    cBackbone.sync.defaultVendor = name;
+};
+
+/** 
+ * Get a sync fucntion by the vendor's name.
+ * @param {string=} name
+ */
+cBackbone.sync.getByVendorName = function(name) {
+    if (!goog.isDef(name))
+        name = cBackbone.sync.defaultVendor;
+    if (!goog.object.containsKey(cBackbone.sync.vendorMap, name))
+        name = cBackbone.sync.defaultVendor;
+    return cBackbone.sync.vendorMap[name];
+};
+
+/**
+ * @param {string} name
+ * @param {Function} sync
+ */
+cBackbone.sync.addVendor = function(name, sync) {
+    cBackbone.sync.vendorMap[name] = sync;
 };
 
