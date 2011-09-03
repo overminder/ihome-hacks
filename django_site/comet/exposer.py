@@ -20,6 +20,7 @@ def jsonp_resp(request, data=None, nofinish=False):
             request.write(response)
             request.finish()
 
+
 def stream_resp(request, data=None):
     func_name = ''.join(request.args.get('callback', []))
     #response = '<script type="text/javascript">%s(%s);</script>' % (
@@ -65,6 +66,10 @@ class Channel(object):
         self.timestamp = time.time()
         self.client_d = None # used to callback
         self.d_call = None   # the timeout canceller
+
+    def safe_repr(self):
+        return '<Channel cid=### data_queue=%s timestamp=%s client_d=%s>' % (
+                self.data_queue, self.timestamp, self.client_d)
 
     def put(self, data):
         """data must be a json-encodable object.
@@ -149,6 +154,7 @@ class ChannelManager(object):
         return cid in self.channels
 
     def clean_up(self, time_diff=30 * 60):
+        """O(1) so don't be afraid to use it"""
         to_del = []
         t = time.time()
         for cid, ch in self.channels.iteritems():
@@ -172,7 +178,8 @@ def create_server_factory():
         """we have two kinds of listening request:
         /app_ns/cid/once?callback=cb
         /app_ns/cid/bind?callback=cb
-        ...i think maybe we just use 'once' only.
+
+        eh... ok i think maybe we just use 'once' only.
         """
         isLeaf = True
         def __init__(self, managers):

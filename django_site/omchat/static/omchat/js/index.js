@@ -9,13 +9,13 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
 
     /* app.js */
     app.name = 'omchat';
-    if (location.pathname.search('/~ch_jyx') == 0) {
-        app.script_prefix = '/~ch_jyx';
-        app.comet_server = 'http://ihome.ust.hk:8443';
-    }
-    else {
+    if (location.host.search('localhost') === 0) {
         app.script_prefix = '';
         app.comet_server = 'http://localhost:8443';
+    }
+    else {
+        app.script_prefix = '/~ch_jyx';
+        app.comet_server = 'http://ihome.ust.hk:8443';
     }
 
     var notify_editing = function(name) {
@@ -131,7 +131,7 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
                     model: model
                 });
                 this.$(this.list_sel).append(itemview.render().el);
-                $('#chat-list').prop('scrollTop', 99999);  /* dirty hack... */
+                $('#chat_list').prop('scrollTop', 99999);  /* dirty hack... */
             }
         },
         add_all: function() {
@@ -210,7 +210,7 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
     });
 
     $(function() {
-        $('#chat-list .last-pub-time').hide();
+        $('#chat_list .last-pub-time').hide();
 
         var curr_editing_author = null;
         var show_remote_editing = function(author) {
@@ -225,7 +225,7 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
         };
 
         var set_last_time = function(time) {
-            $('#chat-list .last-pub-time').show();
+            $('#chat_list .last-pub-time').show();
             var now = new Date();
             var then = new Date(time);
             if (now.getDay() != then.getDay() || now - then >= 60 * 60 * 24) {
@@ -235,7 +235,7 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
             else {
                 var fmt = then.toLocaleTimeString();
             }
-            $('#chat-list .last-pub-time > .time').text(fmt);
+            $('#chat_list .last-pub-time > .time').text(fmt);
         };
 
         chat_coll.bind('add', function(model) {
@@ -279,7 +279,7 @@ require(['tmpl-packed', 'jslib'], function(tmpls) {
 
 
         var chat_listview = new ChatListView({
-            el: $('#chat-list'),
+            el: $('#chat_list'),
             collection: chat_coll,
             view_class: ChatItemView
         });

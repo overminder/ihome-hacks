@@ -1,7 +1,5 @@
 
-@page-width: 712px;
-@col-margin: 12px;
-@chat-width: @page-width - 2 * @col-margin;
+@page-width: 612px;
 
 body {
     font-size: 14px;
@@ -18,9 +16,7 @@ body {
     }
 }
 
-#chat-list {
-    margin: auto;
-    width: @chat-width;
+#chats {
     height: 350px;
     border-color: #ccc;
     border-width: 1px;
@@ -28,85 +24,92 @@ body {
     overflow: scroll;
     overflow-x: hidden;
 
-    > ul {
-        > li {
-            padding: 10px 20px;
-        }
-    }
+    > .omchat-chatlist {
+        padding: 10px 0px;
 
-    .last-pub-time {
-        color: #999;
-        padding: 10px 20px;
-        .time {
-            font-style: italic;
+        /** default appearance */
+        > .omchat-chatlist-item {
+            padding: 10px 20px;
+            cursor: default;
+
+            .author {
+                font-size: 115%;
+                font-style: italic;
+            }
+
+            .content {
+                padding: 2px 8px;
+            }
+
+            .pub-time {
+                font-size: 75%;
+                color: #aaaaaa;
+            }
+
+            .button-container {
+                text-align: right;
+                visibility: hidden;
+
+                .filter-by-author {
+                    font-size: 75%;
+                    margin-left: 20px;
+                    color: #888888;
+                }
+            }
+        }
+
+        > .omchat-chatlist-item-hover {
+            /** overrides -: */
+            background-color: #eeeeee;
+
+            .button-container {
+                /** overrides -: */
+                visibility: visible;
+            }
+        }
+
+        > .omchat-chatlist-item-active {
+            /** overrides -hover */
+            background-color: #dddddd;
         }
     }
 }
 
 #mouth {
     @textarea-width: 430px;
-    @left-margin: 12px;
+    @textarea-height: 90px;
     @button-width: 120px;
     @button-height: 24px;
-    @box-height: 90px;
+    @status-height: 30px;
     @gap: 6px;
 
-    margin-top: 20px;
-    margin-left: @left-margin;
+    margin: 10px auto;
     width: @textarea-width;
-    float: left;
 
     input {
-        margin-top: @gap;
-        margin-left: @left-margin;
         width: @button-width;
-        height: @button-height;
+        height: @button-height - 8px;
     }
 
     textarea {
         margin-top: @gap;
-        margin-left: @left-margin;
-        height: @box-height;
+        height: @textarea-height;
         width: @textarea-width;
         resize: none;
     }
 
     .status {
-        margin-left: @left-margin + 7px;
-        margin-top: 7px;
+        visibility: hidden;
+        margin-top: @gap;
+        height: @status-height;
+        margin-bottom: -@status-height;
         color: #999;
     }
 
-    button {
-        margin-top: -15px;
-        margin-left: @left-margin + @textarea-width - @button-width;
+    .say {
+        margin-left: @textarea-width - @button-width;
         width: @button-width;
         height: @button-height;
-    }
-}
-
-#onlines {
-    @pad: 10px;
-    width: 220px - 2 * @pad;
-    height: 150px - 2 * @pad;
-    padding: @pad;
-    margin-left: 35px;
-    margin-top: 25px;
-    background-color: #eee;
-    float: left;
-    overflow: hidden;
-    h4 {
-        text-align: center;
-        font-size: 150%;
-    }
-    ul {
-        height: 150px - 2 * @pad - 16px;
-        overflow-x: hidden;
-        overflow-y: scroll;
-        li {
-            text-align: center;
-            margin: 4px;
-        }
     }
 }
 
@@ -114,7 +117,8 @@ body {
 #footer {
     clear: both;
     text-align: right;
-    margin-top: 260px;
+    margin-top: 90px;
+    margin-bottom: 10px;
     span {
         display: block;
     }

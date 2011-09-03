@@ -1,82 +1,5 @@
-/* 
- * reset.css
- *
- * http://meyerweb.com/eric/tools/css/reset/ 
- * v2.0 | 20110126
- * License: none (public domain)
- */
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed, 
-figure, figcaption, footer, header, hgroup, 
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
-}
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure, 
-footer, header, hgroup, menu, nav, section {
-    display: block;
-}
-body {
-    line-height: 1;
-}
-ol, ul {
-    list-style: none;
-}
-blockquote, q {
-    quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-    content: '';
-    content: none;
-}
-table {
-    border-collapse: collapse;
-    border-spacing: 0;
-}
 
-/* change font style */
-
-input[type=text], input[type=email], input[type=password], textarea {
-    width:160px;
-    border:1px solid #DDDDDD;
-    padding:3px 4px;
-    border-radius:3px;
-    -moz-border-radius:3px;                                                                                                         
-    -webkit-border-radius:3px;
-    -khtml-border-radius:3px;
-    box-shadow:0 1px 3px #DDD inset;
-    -moz-box-shadow:0 1px 3px #DDD inset;
-    -webkit-box-shadow:0 1px 3px #DDD inset;
-}
-
-input[type=text], input[type=email], input[type=password] {
-    height: 16px;
-}
-
-textarea {
-    width: 360px;
-}
-
-/* AND HERE START LESS.CSS */
-
-@page-width: 712px;
-@col-margin: 12px;
-@chat-width: @page-width - 2 * @col-margin;
+@page-width: 612px;
 
 body {
     font-size: 14px;
@@ -93,9 +16,7 @@ body {
     }
 }
 
-#chat-list {
-    margin: auto;
-    width: @chat-width;
+#chats {
     height: 350px;
     border-color: #ccc;
     border-width: 1px;
@@ -103,85 +24,92 @@ body {
     overflow: scroll;
     overflow-x: hidden;
 
-    > ul {
-        > li {
-            padding: 10px 20px;
-        }
-    }
+    > .omchat-chatlist {
+        padding: 10px 0px;
 
-    .last-pub-time {
-        color: #999;
-        padding: 10px 20px;
-        .time {
-            font-style: italic;
+        /** default appearance */
+        > .omchat-chatlist-item {
+            padding: 10px 20px;
+            cursor: default;
+
+            .author {
+                font-size: 115%;
+                font-style: italic;
+            }
+
+            .content {
+                padding: 2px 8px;
+            }
+
+            .pub-time {
+                font-size: 75%;
+                color: #aaaaaa;
+            }
+
+            .button-container {
+                text-align: right;
+                visibility: hidden;
+
+                .filter-by-author {
+                    font-size: 75%;
+                    margin-left: 20px;
+                    color: #888888;
+                }
+            }
+        }
+
+        > .omchat-chatlist-item-hover {
+            /** overrides -: */
+            background-color: #eeeeee;
+
+            .button-container {
+                /** overrides -: */
+                visibility: visible;
+            }
+        }
+
+        > .omchat-chatlist-item-active {
+            /** overrides -hover */
+            background-color: #dddddd;
         }
     }
 }
 
 #mouth {
     @textarea-width: 430px;
-    @left-margin: 12px;
+    @textarea-height: 90px;
     @button-width: 120px;
     @button-height: 24px;
-    @box-height: 90px;
+    @status-height: 30px;
     @gap: 6px;
 
-    margin-top: 20px;
-    margin-left: @left-margin;
+    margin: 10px auto;
     width: @textarea-width;
-    float: left;
 
     input {
-        margin-top: @gap;
-        margin-left: @left-margin;
         width: @button-width;
-        height: @button-height;
+        height: @button-height - 8px;
     }
 
     textarea {
         margin-top: @gap;
-        margin-left: @left-margin;
-        height: @box-height;
+        height: @textarea-height;
         width: @textarea-width;
         resize: none;
     }
 
     .status {
-        margin-left: @left-margin + 7px;
-        margin-top: 7px;
+        visibility: hidden;
+        margin-top: @gap;
+        height: @status-height;
+        margin-bottom: -@status-height;
         color: #999;
     }
 
-    button {
-        margin-top: -15px;
-        margin-left: @left-margin + @textarea-width - @button-width;
+    .say {
+        margin-left: @textarea-width - @button-width;
         width: @button-width;
         height: @button-height;
-    }
-}
-
-#onlines {
-    @pad: 10px;
-    width: 220px - 2 * @pad;
-    height: 150px - 2 * @pad;
-    padding: @pad;
-    margin-left: 35px;
-    margin-top: 25px;
-    background-color: #eee;
-    float: left;
-    overflow: hidden;
-    h4 {
-        text-align: center;
-        font-size: 150%;
-    }
-    ul {
-        height: 150px - 2 * @pad - 16px;
-        overflow-x: hidden;
-        overflow-y: scroll;
-        li {
-            text-align: center;
-            margin: 4px;
-        }
     }
 }
 
@@ -189,7 +117,8 @@ body {
 #footer {
     clear: both;
     text-align: right;
-    margin-top: 260px;
+    margin-top: 90px;
+    margin-bottom: 10px;
     span {
         display: block;
     }

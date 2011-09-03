@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}
+OmChat - Comet channel stat
+{% endblock %}
+
+{% block body %}
+<pre>
+app_managers = {{ app_managers }}
+channels = [
+{% for channel in app_managers.omchat.iterchannels %} {{ channel.safe_repr }},
+{% endfor %}]
+</pre>
+{% endblock %}

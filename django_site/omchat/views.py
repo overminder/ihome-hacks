@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from comet.api import (create_channel, broadcast_message, cleanup_channel,
-        get_appchannel)
+        get_appchannel, app_managers)
 from omchat.api import ChatRc, dump_rc
 from omchat.models import Chat
 
@@ -34,6 +34,15 @@ def index_dev(request):
             'cid': cid,
             'initdata': dump_rc(ChatRc, chat_list),
             'closure_compiled': True
+        }, context_instance=RequestContext(request)
+    )
+    
+
+def comet_stat(request):
+    if not request.user.is_authenticated():
+        return HttpResponse('Login required.')
+    return render_to_response('omchat/comet-stat.html', {
+            "app_managers": app_managers
         }, context_instance=RequestContext(request)
     )
     

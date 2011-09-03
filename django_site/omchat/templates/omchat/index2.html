@@ -17,16 +17,16 @@ OmChat - Say whatever you want!
 
 {% if not closure_compiled %}
     <script src="{{ STATIC_URL}}omchat/js/goog-closure/library/goog/base.js"></script>
-    <script src="{{ STATIC_URL}}omchat/js/omchat/main-deps.js"></script>
-    <script src="{{ STATIC_URL}}omchat/js/omchat/main.js"></script>
+    <script src="{{ STATIC_URL}}omchat/js/omchat/_build/ep-deps.js"></script>
+    <script src="{{ STATIC_URL}}omchat/js/omchat/ep.js"></script>
     <script>
-        goog.require('omchat.main');
-        omchat.main();
+        goog.require('omchat.ep');
+        omchat.ep.EntryPoint.main();
     </script>
 {% else %}
-    <script src="{{ STATIC_URL}}omchat/js/omchat/main-compiled.js"></script>
+    <script src="{{ STATIC_URL}}omchat/js/omchat/_build/ep-compiled.js"></script>
     <script>
-        omchat.main();
+        omchat.ep.EntryPoint.main();
     </script>
 {% endif %}
 
@@ -38,31 +38,20 @@ OmChat - Say whatever you want!
     <h2>OmChat</h2>
 </div>
 
-<div id="chat-list">
-    <ul></ul>
-    <div class="last-pub-time">
-        <span class="info">
-            last message received at
-        </span>
-        <span class="time"></span>
-    </div>
+<div id="chats">
 </div>
 
 <div id="mouth">
-    <div><input placeholder="Name" type="text" /></div>
-    <textarea placeholder="Say something... (shift + enter to submit)" class="texts"></textarea>
+    <div><input type="text" class="username"/></div>
+    <textarea class="texts"></textarea>
     <div class="status">.</div>
     <button class="say">Say!</button>
 </div>
 
-<div id="onlines">
-    <h4>Recent Users</h4>
-    <ul>
-    </ul>
-</div>
-
 <div id="footer">
-    <span> Source code: <a href="https://github.com/overminder/ihome-hacks">Github</a> </span>
+    <span>Source code:
+        <a href="https://github.com/overminder/ihome-hacks">Github</a>
+    </span>
 </div>
 
 {% endblock %}
