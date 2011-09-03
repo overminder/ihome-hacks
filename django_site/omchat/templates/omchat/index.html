@@ -4,11 +4,32 @@ OmChat - Say whatever you want!
 {% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="{{ STATIC_URL }}omchat/css/site.less.css" type="text/css" media="screen" charset="utf-8">
+<link rel="stylesheet" href="{{ STATIC_URL }}omchat/css/site.less.css" type="text/css" charset="utf-8">
 {% endblock %}
 
 {% block js %}
-<script src="{{ STATIC_URL}}omchat/js/require.js" data-main="{{ STATIC_URL }}omchat/js/index" type="text/javascript" charset="utf-8"> </script>
+    <script>
+    {% autoescape off %}
+        var omchat_initdata = {{ initdata }};
+        var omchat_cid = '{{ cid }}';
+    {% endautoescape %}
+    </script>
+
+{% if not closure_compiled %}
+    <script src="{{ STATIC_URL}}omchat/js/goog-closure/library/goog/base.js"></script>
+    <script src="{{ STATIC_URL}}omchat/js/omchat/_build/ep-deps.js"></script>
+    <script src="{{ STATIC_URL}}omchat/js/omchat/ep.js"></script>
+    <script>
+        goog.require('omchat.ep');
+        omchat.ep.EntryPoint.main();
+    </script>
+{% else %}
+    <script src="{{ STATIC_URL}}omchat/js/omchat/_build/ep-compiled.js"></script>
+    <script>
+        omchat.ep.EntryPoint.main();
+    </script>
+{% endif %}
+
 {% endblock %}
 
 {% block body %}
@@ -17,45 +38,21 @@ OmChat - Say whatever you want!
     <h2>OmChat</h2>
 </div>
 
-<div id="chat_list">
-    <ul></ul>
-    <div class="last-pub-time">
-        <span class="info">
-            last message received at
-        </span>
-        <span class="time"></span>
-    </div>
+<div id="chats">
 </div>
 
 <div id="mouth">
-    <div><input placeholder="Name" type="text" /></div>
-    <textarea placeholder="Say something... (shift + enter to submit)" class="texts"></textarea>
+    <div><input type="text" class="username"/></div>
+    <textarea class="texts"></textarea>
     <div class="status">.</div>
     <button class="say">Say!</button>
 </div>
 
-<div id="onlines">
-    <h4>Recent Users</h4>
-    <ul>
-    </ul>
-</div>
-
 <div id="footer">
-    <span> Source code: <a href="https://github.com/overminder/ihome-hacks">Github</a> </span>
+    <span>Source code:
+        <a href="https://github.com/overminder/ihome-hacks">Github</a>
+    </span>
 </div>
-
-<script type="text/javascript" charset="utf-8">
-    (function() {
-        var _root = window;
-        if (!_root.app)
-            _root.app = {};
-        _root.app.cid = '{{ cid }}';
-    {% autoescape off %}
-        _root.app.initdata = {{ initdata }};
-    {% endautoescape %}
-    _root.app.initdata.objects.reverse();
-    })();
-</script>
 
 {% endblock %}
 
