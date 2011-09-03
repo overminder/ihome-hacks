@@ -10,8 +10,9 @@ OmChat - Say whatever you want!
 {% block js %}
     <script>
     {% autoescape off %}
-        var omchat_initdata = {{ initdata }};
+        var omchat_initData = {{ init_data }};
         var omchat_cid = '{{ cid }}';
+        var omchat_userIp = '{{ user_ip }}';
     {% endautoescape %}
     </script>
 

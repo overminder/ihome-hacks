@@ -34,7 +34,7 @@ omchat.models.Chat.prototype.initializeInternal = function(attr, opt) {
     if (pub_time) {
         this.set({
             'pub_time': goog.date.UtcDateTime.fromIsoString(pub_time)
-        }, {'silent': true});
+        }, {silent: true});
     }
 };
 
@@ -116,7 +116,7 @@ omchat.models.ChatCollection = function(models, opt) {
     this.selectedAuthor_ = null;
 };
 goog.inherits(omchat.models.ChatCollection,
-        cBackbone.vendors.tastypie.Collection);
+              cBackbone.vendors.tastypie.Collection);
 
 /** @return {string?} */
 omchat.models.ChatCollection.prototype.getSelectedAuthor = function() {

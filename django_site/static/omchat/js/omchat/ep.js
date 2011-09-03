@@ -88,7 +88,7 @@ omchat.ep.EntryPoint.main = function() {
     // If the data is not fetched yet, fire the reset event. UI elements are
     // required to listen to this in order to start rendering.
     // But since the data here is already available...
-    ep.chatCollection_.reset(ep.chatCollection_.parse(omchat_initdata));
+    ep.chatCollection_.reset(ep.chatCollection_.parse(omchat_initData));
 
     // Render chat items
     ep.chatContainer_.render(ep.chatDom_);

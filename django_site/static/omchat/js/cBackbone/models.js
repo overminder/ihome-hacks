@@ -58,7 +58,7 @@ cBackbone.models.Model = function(attributes, options) {
      */
     this.escapedAttributes_ = {};
 
-    this.set(extendedAttributes, {'slient': true});
+    this.set(extendedAttributes, {silent: true});
 
     /**
      * Has the item been changed since the last `"CHANGE"` event?
@@ -80,13 +80,19 @@ cBackbone.models.Model = function(attributes, options) {
      * @private
      */
     this.collection_ = null;
-    if (goog.isDefAndNotNull(options) &&
-            goog.object.containsKey(options, 'collection'))
-        this.setCollection(options['collection']);
+    if (goog.isDefAndNotNull(options) && options.collection)
+        this.setCollection(options.collection);
 
     this.initializeInternal(extendedAttributes, options);
 };
 goog.inherits(cBackbone.models.Model, goog.events.EventTarget);
+
+
+/**
+ * @type {Function}
+ * @protected
+ */
+cBackbone.models.Model.prototype.validateInternal = null;
 
 /**
  * @return {cBackbone.models.Collection}
@@ -204,13 +210,13 @@ cBackbone.models.Model.prototype.set = function(attrs, options) {
         return this;
     if (!goog.isDefAndNotNull(options))
         options = {};
-    if (goog.object.containsKey(attrs, 'attributes'))
-        attrs = attrs['attributes'];
+    if (attrs.attributes)
+        attrs = attrs.attributes;
     var now = this.attributes_, escaped = this.escapedAttributes_;
 
     // Run validation
-    if (!options['silent'] && this['validate_'] &&
-            this.performValidation(attrs, options))
+    if (!options.silent && this.validateInternal
+            && this.performValidation(attrs, options))
         return null;
 
     // Check for changes of `id`.
@@ -231,7 +237,7 @@ cBackbone.models.Model.prototype.set = function(attrs, options) {
         }
     });
 
-    if (!alreadyChanging && !options['silent'] && this.changed_)
+    if (!alreadyChanging && !options.silent && this.changed_)
         this.changeInternal(options);
     this.changing_ = false;
     return this;
@@ -250,8 +256,8 @@ cBackbone.models.Model.prototype.fetch = function(options) {
         options = {};
 
     var self = this;
-    var success = options['success'];
-    options['success'] = function(e) {
+    var success = options.success;
+    options.success = function(e) {
         var xhr = /** @type {goog.net.XhrIo} */ (e.target);
         if (!self.set(self.parse(xhr.getResponseJson()), options))
             return null;
@@ -280,8 +286,8 @@ cBackbone.models.Model.prototype.save = function(attrs, options) {
         return null;
 
     var self = this;
-    var success = options['success'];
-    options['success'] = function(e) {
+    var success = options.success;
+    options.success = function(e) {
         var xhr = /** @type {goog.net.XhrIo} */ (e.target);
         if (!self.set(self.parse(xhr.getResponseJson()), options))
             return null;
@@ -310,8 +316,8 @@ cBackbone.models.Model.prototype.destroy = function(attrs, options) {
         return this.dispatchEvent(cBackbone.models.EventType.DESTROY);
 
     var self = this;
-    var success = options['success'];
-    options['success'] = function(e) {
+    var success = options.success;
+    options.success = function(e) {
         self.dispatchEvent(cBackbone.models.EventType.DESTROY);
         if (success)
             return success(e);
@@ -380,10 +386,10 @@ cBackbone.models.Model.prototype.hasChanged = function(attr) {
 cBackbone.models.Model.prototype.performValidation = function(
         attrs, options) {
 
-    var error = this.validate(attrs);
+    var error = this.validateInternal(attrs);
     if (!goog.object.isEmpty(error)) {
-        if (goog.object.containsKey(options, 'error')) {
-            options['error'](this, error, options);
+        if (options.error) {
+            options.error(this, error, options);
         }
         else {
             this.dispatchEvent(cBackbone.models.EventType.ERROR);
@@ -406,8 +412,8 @@ cBackbone.models.Collection = function(models, options) {
     if (!goog.isDefAndNotNull(options))
         options = {};
 
-    if (goog.object.containsKey(options, 'comparator'))
-        this.comparator = options['comparator'];
+    if (options.comparator)
+        this.comparator = options.comparator;
 
     /**
      * @type {Array.<cBackbone.models.Model>}
@@ -428,7 +434,7 @@ cBackbone.models.Collection = function(models, options) {
     this.byCid_ = {};
 
     if (goog.isDefAndNotNull(models))
-        this.reset(models, {'silent': true});
+        this.reset(models, {silent: true});
 
     /**
      * @type {goog.events.EventHandler}
@@ -586,7 +592,7 @@ cBackbone.models.Collection.prototype.sort = function(options) {
         throw new Error('Cannot sort a set without a comparator');
 
     goog.array.stableSort(this.models_, this.comparator);
-    if (!options['silent'])
+    if (!options.silent)
         this.dispatchEvent(cBackbone.models.EventType.RESET);
     return this;
 };
@@ -621,8 +627,8 @@ cBackbone.models.Collection.prototype.reset = function(models, options) {
     goog.array.forEach(this.models_,
             goog.bind(this.removeReferenceInternal, this));
     this.resetInternal();
-    this.add(models, {'silent': true});
-    if (!options['silent'])
+    this.add(models, {silent: true});
+    if (!options.silent)
         this.dispatchEvent(cBackbone.models.EventType.RESET);
 
     return this;
@@ -642,10 +648,10 @@ cBackbone.models.Collection.prototype.fetch = function(options) {
     var self = this;
     var addMethod = goog.bind(this.add, this);
     var resetMethod = goog.bind(this.reset, this);
-    var success = options['success'];
-    options['success'] = function(e) {
+    var success = options.success;
+    options.success = function(e) {
         var xhr = /** @type {goog.net.XhrIo} */ (e.target);
-        var method = options['add'] ? addMethod : resetMethod;
+        var method = options.add ? addMethod : resetMethod;
         method(self.parse(xhr.getResponseJson()), options);
         if (success)
             return success(e);
@@ -675,8 +681,8 @@ cBackbone.models.Collection.prototype.create = function(model, options) {
     if (!model)
         return null;
 
-    var success = options['success'];
-    options['success'] = function(e) {
+    var success = options.success;
+    options.success = function(e) {
         var xhr = /** @type {goog.net.XhrIo} */ (e.target);
         self.add(xhr.getResponseJson(), options);
         if (success)
@@ -730,7 +736,7 @@ cBackbone.models.Collection.prototype.prepareModelInternal = function(
         var attrs = model;
 
         model = new this.model(attrs, {collection: this});
-        if (model.validate && !model.performValidation(attrs, options))
+        if (model.validateInternal && !model.performValidation(attrs, options))
             model = null;
     }
     else if (!model.getCollection()) {
@@ -769,9 +775,9 @@ cBackbone.models.Collection.prototype.addInternal = function(
     this.byCid_[model.getCid()] = model;
 
     // Figure out the index that the model should live at.
-    if (goog.isDefAndNotNull(options['at'])) {
+    if (goog.isDefAndNotNull(options.at)) {
         // Insert the model to the given index.
-        this.models_.splice(options['at'], 0, model);
+        this.models_.splice(options.at, 0, model);
     }
     else if (this.comparator) {
         // Insert the model but preserving the order.
@@ -785,7 +791,7 @@ cBackbone.models.Collection.prototype.addInternal = function(
     // Setup event bubbling.
     model.setParentEventTarget(this);
 
-    if (!options['silent'])
+    if (!options.silent)
         model.dispatchEvent(cBackbone.models.EventType.ADD);
     return model;
 };
@@ -862,7 +868,7 @@ cBackbone.models.CollectionEventHandler = function(collection) {
     });
 };
 goog.inherits(cBackbone.models.CollectionEventHandler,
-        goog.events.EventHandler);
+              goog.events.EventHandler);
 
 
 /**

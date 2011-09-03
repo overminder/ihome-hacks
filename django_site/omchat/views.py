@@ -19,8 +19,9 @@ def index(request):
 
     return render_to_response('omchat/index.html', {
             'cid': cid,
-            'initdata': dump_rc(ChatRc, chat_list),
-            'closure_compiled': True
+            'init_data': dump_rc(ChatRc, chat_list),
+            'closure_compiled': True,
+            'user_ip': request.META['REMOTE_ADDR']
         }, context_instance=RequestContext(request)
     )
     

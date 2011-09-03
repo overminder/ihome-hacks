@@ -46,29 +46,29 @@ cBackbone.sync.defaultSync = function(action, model, options) {
     // Ensure that we have a URL.
     /** @type {Object} */
     var params = goog.object.clone(options);
-    if (!params["url"])
-        params["url"] = model.getUrl() || model.getCollection().getUrl();
+    if (!params.url)
+        params.url = model.getUrl() || model.getCollection().getUrl();
 
     // Ensure that we have the appropriate request data.
-    if (!params["data"] && model &&
+    if (!params.data && model &&
             (action == 'create' || action == 'update')) {
-        params["data"] = goog.json.serialize(model.toJson());
+        params.data = goog.json.serialize(model.toJson());
     }
 
     var headers = {
         "Content-Type": "application/json"
     };
-    goog.object.extend(headers, params["headers"] || {});
+    goog.object.extend(headers, params.headers || {});
 
     // The Deferred object to be returned
     // TODO: errback as well?
     var d = new goog.async.Deferred();
-    d.addCallback(params["success"]);
+    d.addCallback(params.success);
 
-    goog.net.XhrIo.send(params["url"],
+    goog.net.XhrIo.send(params.url,
             goog.bind(d.callback, d) /* opt_callback */,
             method /* opt_method */,
-            params["data"] /* opt_content */,
+            params.data /* opt_content */,
             headers /* opt_headers */);
 
     return d;
@@ -79,7 +79,7 @@ cBackbone.sync.defaultSync = function(action, model, options) {
  * @type {Object}
  */
 cBackbone.sync.vendorMap = {
-    "Backbone": cBackbone.sync.defaultSync
+    'Backbone': cBackbone.sync.defaultSync
 };
 
 /** @type {string} */

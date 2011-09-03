@@ -29,6 +29,23 @@ cBackbone.vendors.tastypie.install = function() {
 };
 
 /**
+ * Inject a X-CSRFTOKEN into the headers, as requested by Django.
+ * Actually this is not specific to tastypie...
+ */
+cBackbone.vendors.tastypie.sendXhr = function(url, opt_callback, opt_method,
+                                              opt_content, opt_headers,
+                                              opt_timeoutInterval) {
+    var headers = opt_headers || {};
+    var needCsrf = opt_method && opt_method !== 'GET';
+    var isCrossDomain = /^http:.*/.test(url) || /^https:.*/.test(url);
+    if (!isCrossDomain && needCsrf)
+        headers["X-CSRFToken"] = cBackbone.vendors.tastypie.getCsrf();
+
+    return goog.net.XhrIo.send(url, opt_callback, opt_method, opt_content,
+                               headers, opt_timeoutInterval);
+};
+
+/**
  * @inheritDoc
  * @constructor
  * @extends {cBackbone.models.Model}
@@ -60,7 +77,7 @@ cBackbone.vendors.tastypie.Collection = function(models, opt) {
     goog.base(this, models, opt);
 };
 goog.inherits(cBackbone.vendors.tastypie.Collection,
-        cBackbone.models.Collection);
+              cBackbone.models.Collection);
 
 /**
  * @inheritDoc
@@ -72,7 +89,7 @@ cBackbone.vendors.tastypie.Collection.prototype.model_ =
  * @inheritDoc
  */
 cBackbone.vendors.tastypie.Collection.prototype.parse = function(data) {
-    return data && data["objects"];
+    return data && data['objects'];
 };
 
 
@@ -93,13 +110,13 @@ cBackbone.vendors.tastypie.getCsrf = function() {
  * @return {goog.async.Deferred}
  */
 cBackbone.vendors.tastypie.sync = function(action, model, options) {
-    if (!options["headers"])
-        options["headers"] = {};
+    if (!options.headers)
+        options.headers = {};
 
-    options["headers"]["Accept"] = 'application/json;q=0.9';
+    options.headers["Accept"] = 'application/json;q=0.9';
 
     if (action !== 'read') {
-        options["headers"]["X-CSRFToken"] =
+        options.headers["X-CSRFToken"] =
                 cBackbone.vendors.tastypie.getCsrf();
     }
 
@@ -108,10 +125,10 @@ cBackbone.vendors.tastypie.sync = function(action, model, options) {
     }
 
     var d = new goog.async.Deferred();
-    d.addCallback(options["success"]);
+    d.addCallback(options.success);
 
     // Replace original success callback with 201-CREATED checker...
-    options["success"] = function(e) {
+    options.success = function(e) {
         var xhr = /** @type {goog.net.XhrIo} */ (e.target);
         if (xhr.getStatus() === goog.net.HttpStatus.CREATED &&
                 !xhr.getResponseText()) {
@@ -120,7 +137,7 @@ cBackbone.vendors.tastypie.sync = function(action, model, options) {
             var headers = {
                 "Content-Type": "application/json"
             };
-            goog.object.extend(headers, options["headers"] || {});
+            goog.object.extend(headers, options.headers || {});
 
             goog.net.XhrIo.send(xhr.getResponseHeader('Location'),
                     goog.bind(d.callback, d) /* opt_callback */,

@@ -423,16 +423,15 @@ omchat.ui.Mouth.prototype.enterDocument = function() {
         var queryData = goog.Uri.QueryData.createFromMap({
             'author': author
         });
-        var headers = {
-            'X-CSRFToken': cBackbone.vendors.tastypie.getCsrf()
-        };
         if (isEditing) {
-            goog.net.XhrIo.send(rootUrl + 'notify-editing', undefined,
-                                'POST', queryData.toString(), headers);
+            cBackbone.vendors.tastypie.sendXhr(rootUrl + 'notify-editing',
+                                               undefined, 'POST',
+                                               queryData.toString());
         }
         else {
-            goog.net.XhrIo.send(rootUrl + 'notify-editing-done', undefined,
-                                'POST', queryData.toString(), headers);
+            cBackbone.vendors.tastypie.sendXhr(rootUrl + 'notify-editing-done',
+                                               undefined, 'POST',
+                                               queryData.toString());
         }
     };
     // Can only send status every 5 seconds.
@@ -445,7 +444,7 @@ omchat.ui.Mouth.prototype.enterDocument = function() {
         var who = messageBody;
 
         // It's because I am editing, ignore this.
-        if (who == nameInput.getValue())
+        if (who == nameInput.getValue() || who == omchat_userIp)
             return;
 
         currentEditingAuthor = who;
@@ -507,6 +506,8 @@ omchat.ui.Mouth.prototype.enterDocument = function() {
 
             textarea.setEnabled(true);
             textarea.setValue('');
+            button.setEnabled(false);  // Again.
+
             if (author) {
                 // Disable name changing after submitting.
                 nameInput.getElement().readOnly = true;
