@@ -3,7 +3,7 @@ goog.provide('omchat.conf');
 /** @const {string} */
 omchat.conf.appName = 'omchat';
 
-if (location.pathname.search('/~ch_jyx') == 0) {
+if (location.hostname == 'ihome.ust.hk') {
     /** @type {string} */
     omchat.conf.scriptPrefix = '/~ch_jyx';
 

@@ -2,9 +2,12 @@ goog.provide('omchat.ui');
 goog.provide('omchat.ui.Chatlist');
 
 goog.require('goog.array');
+goog.require('goog.async.Delay');
+goog.require('goog.async.Throttle');
 goog.require('goog.dom');
 goog.require('goog.dom.classes');
 goog.require('goog.events');
+goog.require('goog.json');
 goog.require('goog.string');
 goog.require('goog.style');
 goog.require('goog.Timer');
@@ -17,6 +20,7 @@ goog.require('goog.ui.ControlRenderer');
 goog.require('goog.ui.LabelInput');
 goog.require('goog.ui.Textarea');
 goog.require('goog.ui.Tooltip');
+goog.require('goog.Uri.QueryData');
 goog.require('soy');
 goog.require('omchat.models');
 goog.require('omchat.templates');
@@ -186,6 +190,7 @@ omchat.ui.Chatlist = function(collection) {
 goog.inherits(omchat.ui.Chatlist, goog.ui.Container);
 
 /**
+ * Since chatlist will only contain one type of child...
  * @inheritDoc
  * @override
  */
@@ -209,10 +214,11 @@ omchat.ui.Chatlist.prototype.getModel;
 omchat.ui.Chatlist.prototype.enterDocument = function() {
     goog.base(this, 'enterDocument');
 
-    // Considered hack here for accessing parentElement.
+    // Considered hack here for accessing parentNode.
+    // XXX: parentElement is not avaliable in firefox.
     var scrollDown = goog.bind(function(e) {
-        var parentElement = this.getElement().parentElement;
-        parentElement.scrollTop = parentElement.scrollHeight;
+        var parentEl = this.getElement().parentNode;
+        parentEl.scrollTop = parentEl.scrollHeight;
     }, this);
 
     var recalculatePubTime = goog.bind(function(e) {
@@ -226,6 +232,38 @@ omchat.ui.Chatlist.prototype.enterDocument = function() {
         });
     }, this);
 
+    var originBrowserTitle = null;
+    var windowHasFocus = true;
+    var twinkleTimer = new goog.Timer(500);
+    goog.events.listen(twinkleTimer, goog.Timer.TICK, function(e) {
+        if (document.title != originBrowserTitle)
+            document.title = originBrowserTitle;
+        else
+            document.title = 'New Message';
+
+    });
+    goog.events.listen(window, goog.events.EventType.BLUR, function() {
+        windowHasFocus = false;
+    });
+    goog.events.listen(window, goog.events.EventType.FOCUS, function() {
+        windowHasFocus = true;
+        untwinkleBrowserTitle();
+    });
+    var twinkleBrowserTitle = goog.bind(function(e) {
+        if (windowHasFocus || originBrowserTitle)
+            return;
+
+        originBrowserTitle = document.title;
+        twinkleTimer.start();
+    });
+    var untwinkleBrowserTitle = function() {
+        if (originBrowserTitle) {
+            twinkleTimer.stop();
+            document.title = originBrowserTitle;
+            originBrowserTitle = null;
+        }
+    };
+
     // After we are in the dom, we should scroll down.
     scrollDown();
     // Scroll down the dom when new child is added.
@@ -235,6 +273,10 @@ omchat.ui.Chatlist.prototype.enterDocument = function() {
     // Re-calculate pubTime when new child is added.
     goog.events.listen(this, omchat.ui.Chatlist.EventType.CHILD_ADDED,
                        recalculatePubTime);
+
+    // Notify the user by blinking the browser title if window was blurred
+    goog.events.listen(this, omchat.ui.Chatlist.EventType.CHILD_ADDED,
+                       twinkleBrowserTitle);
 
     // Render when new model is added.
     goog.events.listen(this.getModel(), cBackbone.models.EventType.ADD,
@@ -274,6 +316,14 @@ omchat.ui.Chatlist.prototype.enterDocument = function() {
     var minuteTimer = new goog.Timer(60 * 1000);
     goog.events.listen(minuteTimer, goog.Timer.TICK, recalculatePubTime);
     minuteTimer.start();
+
+    // Receive updates from the channel
+    var channel = omchat.ep.EntryPoint.getInstance().getChannel();
+    goog.events.listen(channel, 'chat-created', goog.bind(function(e) {
+        var messageBody = /** @type {string} */ (e.messageBody);
+        var chat = goog.json.parse(messageBody);
+        this.getModel().add(chat);
+    }, this));
 };
 
 goog.ui.registry.setDefaultRenderer(omchat.ui.Chatlist,
@@ -365,7 +415,65 @@ omchat.ui.Mouth.prototype.enterDocument = function() {
     var nameInput = this.getChildAt(0);
     var textarea = this.getChildAt(1);
     var button = this.getChildAt(2);
-    var statusElement = this.getElementByClassName;
+    var statusElement = this.getElementByClass('status');
+
+    var notifyEditing = function(isEditing) {
+        var author = nameInput.getValue();
+        var rootUrl = omchat.conf.scriptPrefix + '/omchat/';
+        var queryData = goog.Uri.QueryData.createFromMap({
+            'author': author
+        });
+        var headers = {
+            'X-CSRFToken': cBackbone.vendors.tastypie.getCsrf()
+        };
+        if (isEditing) {
+            goog.net.XhrIo.send(rootUrl + 'notify-editing', undefined,
+                                'POST', queryData.toString(), headers);
+        }
+        else {
+            goog.net.XhrIo.send(rootUrl + 'notify-editing-done', undefined,
+                                'POST', queryData.toString(), headers);
+        }
+    };
+    // Can only send status every 5 seconds.
+    var notifyEditingThrottle = new goog.async.Throttle(
+            goog.partial(notifyEditing, true), 5 * 1000);
+
+    var currentEditingAuthor = null;
+    var onSomeoneEditing = goog.bind(function(e) {
+        var messageBody = /** @type {string} */ (e.messageBody);
+        var who = messageBody;
+
+        // It's because I am editing, ignore this.
+        if (who == nameInput.getValue())
+            return;
+
+        currentEditingAuthor = who;
+        statusElement.innerHTML = goog.string.htmlEscape(who)
+                + ' is editing...';
+        goog.style.setStyle(statusElement, 'visibility', 'visible');
+        clearEditingDelay.start();
+    }, this);
+
+    var clearEditingHandler = function(e) {
+        goog.style.setStyle(statusElement, 'visibility', 'hidden');
+        currentEditingAuthor = null;
+    };
+    // Dispose the editing message every 10 seconds.
+    var clearEditingDelay = new goog.async.Delay(clearEditingHandler,
+                                                 10 * 1000);
+    var doneEditingHandler = function(e) {
+        var messageBody = /** @type {string} */ (e.messageBody);
+        var who = messageBody;
+        if (who == currentEditingAuthor)
+            clearEditingHandler();
+    };
+
+    // Read update of editing status from channel.
+    var channel = omchat.ep.EntryPoint.getInstance().getChannel();
+    goog.events.listen(channel, 'chat-editing', onSomeoneEditing);
+    goog.events.listen(channel, 'chat-editing-done', doneEditingHandler);
+
 
     var submitHandler = goog.bind(function(e) {
         var author = nameInput.getValue();
@@ -391,7 +499,12 @@ omchat.ui.Mouth.prototype.enterDocument = function() {
         var xhrDeferred = newChat.save(null, {'url': collection.getUrl()});
 
         xhrDeferred.addCallback(function() {
-            // After submission succeed
+            // After submission succeed, clear all pending editing calls.
+            notifyEditingThrottle.stop();
+            // Tell server I stopped editing. (actually it can be done in
+            // a better way like dispatch in the server...)
+            notifyEditing(false);
+
             textarea.setEnabled(true);
             textarea.setValue('');
             if (author) {
@@ -408,7 +521,7 @@ omchat.ui.Mouth.prototype.enterDocument = function() {
             button.setEnabled(false);
     };
 
-    var onTextareaKeyUp = function(e) {
+    var onTextareaKeyEvent = function(e) {
         var keyCode = /** @type {number} */ (e.keyCode);
         if (keyCode == 13 && e.shiftKey) {
             // is shift + enter
@@ -416,6 +529,7 @@ omchat.ui.Mouth.prototype.enterDocument = function() {
             submitHandler(e);
         }
         else {
+            notifyEditingThrottle.fire();
             buttonEnabler(e);
         }
     };
@@ -425,14 +539,13 @@ omchat.ui.Mouth.prototype.enterDocument = function() {
     goog.events.listen(textarea.getElement(),
                        [goog.events.EventType.KEYUP,
                         goog.events.EventType.KEYDOWN],
-                       onTextareaKeyUp);
+                       onTextareaKeyEvent);
     buttonEnabler();  // set the status of the textarea to be disabled.
 };
 
 
-
 /** @enum {string} */
 omchat.ui.Chatlist.EventType = {
-    CHILD_ADDED: goog.events.getUniqueId('add-child')
+    CHILD_ADDED: goog.events.getUniqueId('child-added')
 };
 

@@ -11,11 +11,12 @@ class Chat(models.Model):
     pub_time = models.DateTimeField(auto_now_add=True)
 
 def on_chat_saved(sender, instance, **kw):
+    """Broad cast this event to all channel listeners"""
     if kw.get('created'):
         from comet.api import broadcast_message
         from omchat.api import ChatRc, dump_rc
         broadcast_message('omchat', {
-            'action': 'chat:created',
+            'action': 'chat-created',
             'data': dump_rc(ChatRc, instance)
         })
 

@@ -7,7 +7,7 @@ goog.addDependency("../../../omchat/view.js", ['omchat.view'], ['goog.array', 'g
 goog.addDependency("../../../omchat/templates.soy.js", ['omchat.templates'], ['soy', 'soy.StringBuilder']);
 goog.addDependency("../../../omchat/util.js", ['omchat.util'], ['goog.array', 'goog.object']);
 goog.addDependency("../../../omchat/route.js", ['omchat.route'], ['goog.array', 'goog.events', 'goog.History', 'goog.History.Event', 'goog.History.EventType']);
-goog.addDependency("../../../omchat/ui.js", ['omchat.ui', 'omchat.ui.Chatlist'], ['goog.array', 'goog.dom', 'goog.dom.classes', 'goog.events', 'goog.string', 'goog.style', 'goog.Timer', 'goog.ui.Button', 'goog.ui.Component', 'goog.ui.Container', 'goog.ui.ContainerRenderer', 'goog.ui.Control', 'goog.ui.ControlRenderer', 'goog.ui.LabelInput', 'goog.ui.Textarea', 'goog.ui.Tooltip', 'soy', 'omchat.models', 'omchat.templates', 'omchat.util']);
+goog.addDependency("../../../omchat/ui.js", ['omchat.ui', 'omchat.ui.Chatlist'], ['goog.array', 'goog.async.Delay', 'goog.async.Throttle', 'goog.dom', 'goog.dom.classes', 'goog.events', 'goog.json', 'goog.string', 'goog.style', 'goog.Timer', 'goog.ui.Button', 'goog.ui.Component', 'goog.ui.Container', 'goog.ui.ContainerRenderer', 'goog.ui.Control', 'goog.ui.ControlRenderer', 'goog.ui.LabelInput', 'goog.ui.Textarea', 'goog.ui.Tooltip', 'goog.Uri.QueryData', 'soy', 'omchat.models', 'omchat.templates', 'omchat.util']);
 goog.addDependency("../../../omchat/_build/ep-deps.js", [], []);
 goog.addDependency("../../../omchat/_build/ep-compiled.js", [], []);
 goog.addDependency("../../../cBackbone/models.js", ['cBackbone.models', 'cBackbone.models.EventType'], ['cBackbone.sync', 'goog.array', 'goog.events', 'goog.events.EventHandler', 'goog.events.EventTarget', 'goog.object']);

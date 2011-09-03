@@ -51,27 +51,15 @@ omchat.ep.EntryPoint = function() {
      * @type {omchat.comet.Channel}
      * @private
      */
-    this.channel_ = new omchat.comet.Channel(omchat_cid);
+    this.channel_ = new omchat.comet.MultiplexChannel(omchat_cid);
 };
 goog.addSingletonGetter(omchat.ep.EntryPoint);
 
 /**
- * bind channel's onMessage
- * @protected
+ * @return {omchat.comet.MultiplexChannel}
  */
-omchat.ep.EntryPoint.prototype.setupChannel = function() {
-    var chatCollection = this.chatCollection_;
-    this.channel_.onMessage = function(msg) {
-        var action = msg['action'];
-        if (action == 'chat:created') {
-            var obj = goog.json.parse(msg['data']);
-            chatCollection.add(new omchat.models.Chat(obj));
-        }
-        else if (action == 'chat:editing') {
-            var author = msg['data'];
-        }
-    };
-    this.channel_.connect();
+omchat.ep.EntryPoint.prototype.getChannel = function() {
+    return this.channel_;
 };
 
 /**
@@ -97,8 +85,6 @@ omchat.ep.EntryPoint.prototype.setupRouting = function() {
 omchat.ep.EntryPoint.main = function() {
     var ep = omchat.ep.EntryPoint.getInstance();
 
-    window['entrypoint'] = ep;
-
     // If the data is not fetched yet, fire the reset event. UI elements are
     // required to listen to this in order to start rendering.
     // But since the data here is already available...
@@ -113,8 +99,8 @@ omchat.ep.EntryPoint.main = function() {
     // History support
     ep.setupRouting();
     
-    // Comet support
-    ep.setupChannel();
+    // Start binding channel to server
+    ep.channel_.connect();
 };
 
 goog.exportSymbol('omchat.ep.EntryPoint.main', omchat.ep.EntryPoint.main);

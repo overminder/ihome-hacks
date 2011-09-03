@@ -9,9 +9,9 @@ goog.require('omchat.conf');
 
 
 /**
- * @extends {goog.events.EventTarget}
  * @param {string} cid The channel id.
  * @constructor
+ * @extends {goog.events.EventTarget}
  */
 omchat.comet.Channel = function(cid) {
     /**
@@ -126,5 +126,27 @@ omchat.comet.Channel.prototype.fetchOnceInternal = function() {
 
     jsonp.send(null, goog.bind(this.handleResponseInternal, this),
             goog.bind(this.handleTimeoutInternal, this));
+};
+
+/**
+ * Privides interface to handle duplex messages.
+ * @constructor
+ * @extends {omchat.comet.Channel}
+ */
+omchat.comet.MultiplexChannel = function(cid) {
+    goog.base(this, cid);
+};
+goog.inherits(omchat.comet.MultiplexChannel, omchat.comet.Channel);
+
+/**
+ * @inheritDoc
+ * @override
+ */
+omchat.comet.Channel.prototype.onMessage = function(msg) {
+    var action = msg['action'];
+    this.dispatchEvent({
+        type: action,
+        messageBody: msg['data']
+    });
 };
 

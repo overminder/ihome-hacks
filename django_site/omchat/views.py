@@ -60,11 +60,24 @@ def only_allow_post(func):
 
 @only_allow_post
 def notify_editing(request):
+    """broad this to all channel listeners"""
     author = request.POST.get('author')
     if not author:
         author = request.META['REMOTE_ADDR']
     broadcast_message('omchat', {
-        'action': 'chat:editing',
+        'action': 'chat-editing',
+        'data': author
+    })
+    return json_resp()
+
+@only_allow_post
+def notify_editing_done(request):
+    """broad this to all channel listeners"""
+    author = request.POST.get('author')
+    if not author:
+        author = request.META['REMOTE_ADDR']
+    broadcast_message('omchat', {
+        'action': 'chat-editing-done',
         'data': author
     })
     return json_resp()
