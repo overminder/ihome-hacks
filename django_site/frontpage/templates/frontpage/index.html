@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}
+overmind :: Monad m =&gt; m ()
+{% endblock %}
+
+{% block css %}
+<style>
+    body {
+        background-color: white;
+    }
+    #wrapper {
+        width: 640px;
+        margin: auto;
+        padding: 20px;
+        background-color: #f0f0f0;
+    }
+</style>
+
+{% endblock %}
+
+{% block body %}
+<div id="wrapper">
+
+<h1 id="name">
+    Overmind JIANG
+</h1>
+
+<div id="descr">
+    Overmind is a student currently studying in HKUST. His major is CSE.
+    His interests include program analysis, compiler construction, functional
+    programming languages and fast dynamic language intepreter design.
+</div>
+
+<hr />
+
+<h1 id="extra">
+    You may be interested in...
+</h1>
+
+<ul id="extra">
+    <li>
+        <a href="omchat">OmChat, an real-time online chatting system.</a>
+    </li>
+    <li>
+        <a href="http://www.reddit.com/r/programming">
+            Reddit's Programming discussion board, useful for daily reading.
+        </a>
+    </li>
+    <li>
+        <a href="https://github.com/overminder">
+            My Github profile, has some personal and group projects.
+        </a>
+    </li>
+</ul>
+
+</div>
+
+{% endblock %}
+

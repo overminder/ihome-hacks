@@ -9,6 +9,7 @@ urlpatterns = patterns('',
     # url(r'^$', 'django_site.views.home', name='home'),
     url(r'^omtwit/', include('django_site.omtwit.urls')),
     url(r'^omchat/', include('django_site.omchat.urls')),
+    url(r'^', include('django_site.frontpage.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

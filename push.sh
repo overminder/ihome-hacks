@@ -8,10 +8,10 @@ RNAME=ch_jyx
 RHOST=ihome.ust.hk
 RPORT="3389"
 RPATH=/home/ch_jyx/src/django_site/
-RPATH_STATIC=/home/ch_jyx/static/
+RPATH_STATIC=/home/ch_jyx/s/static/
 
 USER_SELF=overmind
-HOST_SELF="143.89.82.10"
+HOST_SELF=`./get-my-ip.sh`
 LPATH="`pwd`/django_site/"
 LPATH_STATIC="`pwd`/django_site/static/"
 

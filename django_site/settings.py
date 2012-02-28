@@ -133,8 +133,9 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 
-    'omtwit',
+    #'omtwit',
     'omchat',
+    'frontpage',
 )
 
 if not at_ihome:
